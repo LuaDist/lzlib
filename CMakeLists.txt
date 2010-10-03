@@ -5,7 +5,7 @@
 # Please note that the package source code is licensed under its own license.
 
 PROJECT(lzlib C)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 INCLUDE(dist.cmake)
 
 FIND_LIBRARY ( Z_LIBRARY NAMES z)  # Find zlib
