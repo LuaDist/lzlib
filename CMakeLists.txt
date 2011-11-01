@@ -8,7 +8,7 @@ PROJECT(lzlib C)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 INCLUDE(dist.cmake)
 
-FIND_LIBRARY ( Z_LIBRARY NAMES z)  # Find zlib
+FIND_LIBRARY ( Z_LIBRARY NAMES zlib z)  # Find zlib
 
 ADD_LUA_MODULE(zlib lzlib.c zlib.def)
 TARGET_LINK_LIBRARIES(zlib ${Z_LIBRARY})
