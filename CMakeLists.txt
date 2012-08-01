@@ -1,23 +1,23 @@
-# Copyright (C) 2007-2009 LuaDist.
+# Copyright (C) 2007-2012 LuaDist.
 # Created by Peter Drahoš
 # Redistribution and use of this file is allowed according to the terms of the MIT license.
 # For details see the COPYRIGHT file distributed with LuaDist.
 # Please note that the package source code is licensed under its own license.
 
-PROJECT(lzlib C)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-INCLUDE(dist.cmake)
+project ( lzlib C )
+cmake_minimum_required ( VERSION 2.8 )
+include ( cmake/dist.cmake )
+include ( lua )
 
-FIND_LIBRARY ( Z_LIBRARY NAMES zlib z)  # Find zlib
+find_library ( Z_LIBRARY NAMES zlib z )
+# Find zlib
 
-ADD_LUA_MODULE(zlib lzlib.c zlib.def)
-TARGET_LINK_LIBRARIES(zlib ${Z_LIBRARY})
+install_lua_module ( zlib lzlib.c zlib.def LINK ${Z_LIBRARY} )
+install_lua_module ( gzip gzip.lua )
 
-ADD_LUA_TEST(test_gzip.lua)
-ADD_LUA_TEST(test_zlib2.lua)
-ADD_LUA_TEST(test_zlib3.lua)
+add_lua_test ( test_gzip.lua )
+add_lua_test ( test_zlib2.lua )
+add_lua_test ( test_zlib3.lua )
 
-INSTALL (TARGETS zlib DESTINATION ${INSTALL_CMOD})
-INSTALL (FILES gzip.lua DESTINATION ${INSTALL_LMOD})
-INSTALL (FILES README README.lgzip DESTINATION ${INSTALL_DATA})
-INSTALL (FILES test_zlib2.lua test_gzip.lua DESTINATION ${INSTALL_TEST})
+install_data ( README README.lgzip )
+install_test ( test_zlib2.lua test_gzip.lua )
