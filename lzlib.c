@@ -117,8 +117,7 @@ static lz_stream *lzstream_new(lua_State *L, int src) {
     if (lua_isstring(L, src)) {
         lua_pushvalue(L, src);
         s->i_buffer_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-        s->i_buffer = lua_tostring(L, src);
-        s->i_buffer_len = lua_strlen(L, src);
+        s->i_buffer = lua_tolstring(L, src, &s->i_buffer_len);
     } else {
         /* table | function | userdata */
         lua_pushvalue(L, src);
@@ -212,14 +211,14 @@ static int lzstream_adler(lua_State *L) {
 /* ====================================================================== */
 
 /*
-    zlib.deflate{
+    zlib.deflate(
         sink: function | { write: function [, close: function, flush: function] },
         compression level, [Z_DEFAILT_COMPRESSION]
         method, [Z_DEFLATED]
         windowBits, [15]
         memLevel, [8]
         strategy, [Z_DEFAULT_STRATEGY]
-    }
+    )
 */
 static int lzlib_deflate(lua_State *L) {
     int level, method, windowBits, memLevel, strategy;
@@ -255,10 +254,10 @@ static int lzlib_deflate(lua_State *L) {
 }
 
 /*
-    zlib.inflate{
+    zlib.inflate(
         source: string | function | { read: function, close: function },
         windowBits: number, [15]
-    }
+    )
 */
 static int lzlib_inflate(lua_State *L)
 {
@@ -338,9 +337,8 @@ static const char* lzstream_fetch_block(lua_State *L, lz_stream *s, int hint) {
 
             if (lua_isstring(L, -1)) {
                 s->i_buffer_pos = 0;
-                s->i_buffer_len = lua_strlen(L, -1);
+                s->i_buffer = lua_tolstring(L, -1, &s->i_buffer_len);
                 if (s->i_buffer_len > 0) {
-                    s->i_buffer = lua_tostring(L, -1);
                     s->i_buffer_ref = luaL_ref(L, LUA_REGISTRYINDEX);
                 } else {
                     lua_pop(L, 1);
@@ -498,6 +496,7 @@ static int lz_read_line(lua_State *L, lz_stream *s) {
 
 
 static int lz_read_chars(lua_State *L, lz_stream *s, size_t n) {
+    size_t len;
     luaL_Buffer b;
     luaL_buffinit(L, &b);
 
@@ -507,7 +506,8 @@ static int lz_read_chars(lua_State *L, lz_stream *s, size_t n) {
     } while (n > 0 && lzstream_inflate_block(L, s));
 
     luaL_pushresult(&b);
-    return n == 0 || lua_strlen(L, -1) > 0;
+    lua_tolstring(L, -1, &len);
+    return n == 0 || len > 0;
 }
 
 static int lzstream_decompress(lua_State *L) {
@@ -676,9 +676,9 @@ static int lzlib_adler32(lua_State *L)
     else
     {
         /* update adler32 checksum */
+        size_t len;
         int adler = luaL_checkint(L, 1);
-        const unsigned char* buf = (unsigned char*)luaL_checkstring(L, 2);
-        int len = lua_strlen(L, 2);
+        const unsigned char* buf = (unsigned char*)luaL_checklstring(L, 2, &len);
 
         lua_pushnumber(L, adler32(adler, buf, len));
     }
@@ -696,9 +696,9 @@ static int lzlib_crc32(lua_State *L)
     else
     {
         /* update crc32 checksum */
+        size_t len;
         int crc = luaL_checkint(L, 1);
-        const unsigned char* buf = (unsigned char*)luaL_checkstring(L, 2);
-        int len = lua_strlen(L, 2);
+        const unsigned char* buf = (unsigned char*)luaL_checklstring(L, 2, &len);
 
         lua_pushnumber(L, crc32(crc, buf, len));
     }
@@ -709,8 +709,8 @@ static int lzlib_crc32(lua_State *L)
 
 
 static int lzlib_compress(lua_State *L) {
-    const char *next_in = luaL_checkstring(L, 1);
-    int avail_in = lua_strlen(L, 1);
+    size_t avail_in;
+    const char *next_in = luaL_checklstring(L, 1, &avail_in);
     int level = luaL_optint(L, 2, Z_DEFAULT_COMPRESSION);
     int method = luaL_optint(L, 3, Z_DEFLATED);
     int windowBits = luaL_optint(L, 4, 15);
@@ -775,8 +775,8 @@ static int lzlib_compress(lua_State *L) {
 
 static int lzlib_decompress(lua_State *L)
 {
-    const char *next_in = luaL_checkstring(L, 1);
-    int avail_in = lua_strlen(L, 1);
+    size_t avail_in;
+    const char *next_in = luaL_checklstring(L, 1, &avail_in);
     int windowBits = luaL_optint(L, 2, 15);
 
     int ret;
@@ -840,10 +840,9 @@ static int lzlib_decompress(lua_State *L)
 ** =========================================================================
 */
 
-
 LUALIB_API int luaopen_zlib(lua_State *L)
 {
-    const luaL_reg lzstream_meta[] =
+    const luaL_Reg lzstream_meta[] =
     {
         {"write",           lzstream_compress   },
         {"read",            lzstream_decompress },
@@ -858,7 +857,7 @@ LUALIB_API int luaopen_zlib(lua_State *L)
         {NULL, NULL}
     };
 
-    const luaL_reg zlib[] =
+    const luaL_Reg zlib[] =
     {
         {"version",         lzlib_version       },
         {"adler32",         lzlib_adler32       },
@@ -894,14 +893,46 @@ LUALIB_API int luaopen_zlib(lua_State *L)
     lua_newtable(L);
 
     lua_pushliteral (L, "_COPYRIGHT");
-    lua_pushliteral (L, "Copyright (C) 2003-2008 Tiago Dionizio");
+    lua_pushliteral (L, "Copyright (C) 2003-2010 Tiago Dionizio");
     lua_settable (L, -3);
     lua_pushliteral (L, "_DESCRIPTION");
     lua_pushliteral (L, "Lua 5 interface to access zlib library functions");
     lua_settable (L, -3);
     lua_pushliteral (L, "_VERSION");
-    lua_pushliteral (L, "lzlib 0.4-work2");
+    lua_pushliteral (L, "lzlib 0.4-work3");
     lua_settable (L, -3);
+
+#define PUSH_LITERAL(name) \
+    lua_pushliteral (L, #name); \
+    lua_pushinteger (L, Z_##name); \
+    lua_settable (L, -3);
+
+#define PUSH_NUMBER(name, value) \
+    lua_pushliteral (L, #name); \
+    lua_pushinteger (L, value); \
+    lua_settable (L, -3);
+
+    PUSH_LITERAL(NO_COMPRESSION)
+    PUSH_LITERAL(BEST_SPEED)
+    PUSH_LITERAL(BEST_COMPRESSION)
+    PUSH_LITERAL(DEFAULT_COMPRESSION)
+
+    PUSH_LITERAL(FILTERED)
+    PUSH_LITERAL(HUFFMAN_ONLY)
+    PUSH_LITERAL(RLE)
+    PUSH_LITERAL(FIXED)
+    PUSH_LITERAL(DEFAULT_STRATEGY)
+
+    PUSH_NUMBER(MINIMUM_MEMLEVEL, 1)
+    PUSH_NUMBER(MAXIMUM_MEMLEVEL, 9)
+    PUSH_NUMBER(DEFAULT_MEMLEVEL, 8)
+
+    PUSH_NUMBER(DEFAULT_WINDOWBITS, 15)
+    PUSH_NUMBER(MINIMUM_WINDOWBITS, 8)
+    PUSH_NUMBER(MAXIMUM_WINDOWBITS, 15)
+
+    PUSH_NUMBER(GZIP_WINDOWBITS, 16)
+    PUSH_NUMBER(RAW_WINDOWBITS, -1)
 
     luaL_register(L, NULL, zlib);
 

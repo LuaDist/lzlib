@@ -6,7 +6,7 @@ DISTDIR=dist
 TMP=/tmp
 
 # change these to reflect your Lua installation
-LUA= $(HOME)/local/lua
+LUA= $(HOME)/local/lua-5.2
 LUAINC= $(LUA)/include
 LUALIB= $(LUA)/lib
 LUABIN= $(LUA)/bin
@@ -27,17 +27,19 @@ GZIP_NAME = gzip
 T_ZLIB= $(ZLIB_NAME).so
 T_GZIP= $(GZIP_NAME).so
 
-VER=0.4-work2
+VER=0.4-work3
 TARFILE = $(DISTDIR)/$(MYLIB)-$(VER).tar.gz
 TARFILES = Makefile README README.lgzip CHANGES \
 	lzlib.c gzip.lua \
 	test_zlib2.lua \
 	test_zlib3.lua \
-	test_gzip.lua
+	test_gzip.lua \
+	test_prologue.lua
 
 all: $(T_ZLIB) # $(T_GZIP)
 
 test: $(T_ZLIB) # $(T_GZIP)
+	$(LUABIN)/lua -lluarc test_prologue.lua
 	$(LUABIN)/lua -lluarc test_gzip.lua
 	$(LUABIN)/lua -lluarc test_zlib2.lua
 	$(LUABIN)/lua -lluarc test_zlib3.lua
