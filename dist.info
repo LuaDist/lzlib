@@ -1,0 +1,32 @@
+type = "x86"
+arch = "Windows"
+author = "Tiago Dionizio"
+depends = {
+[[lua ~> 5.1]],
+[[zlib >=1.2.3]],
+}
+
+desc = "Lua bindings to the ZLib compression library"
+version = "0.4work2"
+maintainer = "Peter Drahoš"
+files = {
+Runtime = {
+[[lib\lua\zlib.dll]],
+[[lib\lua\gzip.lua]],
+}
+,
+Data = {
+[[share\lzlib\README]],
+[[share\lzlib\README.lgzip]],
+}
+,
+Test = {
+[[share\lzlib\test\test_zlib2.lua]],
+[[share\lzlib\test\test_gzip.lua]],
+}
+,
+}
+
+url = "http://luaforge.net/projects/lzlib/"
+name = "lzlib"
+license = "MIT/X11"
