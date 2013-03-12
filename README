@@ -63,6 +63,7 @@ zlib.deflate{
 	windowBits, [15]
 	memLevel, [8]
 	strategy, [Z_DEFAULT_STRATEGY]
+    dictionary, [""]
 }
 	Return a deflate stream.
 
@@ -80,6 +81,7 @@ zlib.deflate{
 zlib.inflate{
 	source: string | function | { read: function, close: function },
 	windowBits: number, [15]
+    dictionary, [""]
 }
 	Return an inflate stream.
 

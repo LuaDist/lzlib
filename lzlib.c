@@ -83,6 +83,9 @@ typedef struct {
     size_t o_buffer_len;
     size_t o_buffer_max;
     char o_buffer[LZ_BUFFER_SIZE];
+    /* dictionary */
+    const Bytef *dictionary;
+    size_t dictionary_len;
 } lz_stream;
 
 
@@ -219,11 +222,14 @@ static int lzstream_adler(lua_State *L) {
         windowBits, [15]
         memLevel, [8]
         strategy, [Z_DEFAULT_STRATEGY]
+        dictionary: [""]
     }
 */
 static int lzlib_deflate(lua_State *L) {
     int level, method, windowBits, memLevel, strategy;
     lz_stream *s;
+    const char *dictionary;
+    size_t dictionary_len;
 
     if (lua_istable(L, 1) || lua_isuserdata(L, 1)) {
         /* is there a :write function? */
@@ -242,12 +248,20 @@ static int lzlib_deflate(lua_State *L) {
     windowBits = luaL_optint(L, 4, 15);
     memLevel = luaL_optint(L, 5, 8);
     strategy = luaL_optint(L, 6, Z_DEFAULT_STRATEGY);
+    dictionary = luaL_optlstring(L, 7, NULL, &dictionary_len);
 
     s = lzstream_new(L, 1);
 
     if (deflateInit2(&s->zstream, level, method, windowBits, memLevel, strategy) != Z_OK) {
         lua_pushliteral(L, "call to deflateInit2 failed");
         lua_error(L);
+    }
+
+    if (dictionary) {
+        if (deflateSetDictionary(&s->zstream, (const Bytef *) dictionary, dictionary_len) != Z_OK) {
+            lua_pushliteral(L, "call to deflateSetDictionnary failed");
+            lua_error(L);
+        }
     }
 
     s->state = LZ_DEFLATE;
@@ -258,6 +272,7 @@ static int lzlib_deflate(lua_State *L) {
     zlib.inflate{
         source: string | function | { read: function, close: function },
         windowBits: number, [15]
+        dictionary: [""]
     }
 */
 static int lzlib_inflate(lua_State *L)
@@ -265,6 +280,8 @@ static int lzlib_inflate(lua_State *L)
     int windowBits;
     lz_stream *s;
     int have_peek = 0;
+    const char *dictionary;
+    size_t dictionary_len;
 
     if (lua_istable(L, 1) || lua_isuserdata(L, 1)) {
         /* is there a :read function? */
@@ -283,6 +300,7 @@ static int lzlib_inflate(lua_State *L)
     }
 
     windowBits = luaL_optint(L, 2, 15);
+    dictionary = luaL_optlstring(L, 3, NULL, &dictionary_len);
 
     s = lzstream_new(L, 1);
 
@@ -293,6 +311,11 @@ static int lzlib_inflate(lua_State *L)
     if (inflateInit2(&s->zstream, windowBits) != Z_OK) {
         lua_pushliteral(L, "call to inflateInit2 failed");
         lua_error(L);
+    }
+
+    if (dictionary) {
+        s->dictionary = (const Bytef *) dictionary;
+        s->dictionary_len = dictionary_len;
     }
 
     s->peek = have_peek;
@@ -376,6 +399,20 @@ static int lzstream_inflate_block(lua_State *L, lz_stream *s) {
 
         /* munch some more */
         r = inflate(&s->zstream, Z_SYNC_FLUSH);
+
+        if (r == Z_NEED_DICT) {
+            if (s->dictionary == NULL) {
+                lua_pushliteral(L, "no inflate dictionary provided");
+                lua_error(L);
+            }
+
+            if (inflateSetDictionary(&s->zstream, s->dictionary, s->dictionary_len) != Z_OK) {
+                lua_pushliteral(L, "call to inflateSetDictionnary failed");
+                lua_error(L);
+            }
+
+            r = inflate(&s->zstream, Z_SYNC_FLUSH);
+        }
 
         if (r != Z_OK && r != Z_STREAM_END && r != Z_BUF_ERROR) {
             lzstream_cleanup(L, s);
