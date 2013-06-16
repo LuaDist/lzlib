@@ -1,6 +1,8 @@
 
 local zlib = require 'zlib'
 
+local gzip = require 'gzip'
+
 local data = 'abcde'
 local cdata = zlib.compress(data)
 local udata = zlib.decompress(cdata)
@@ -14,7 +16,17 @@ for i = 1, 5 do
 end
 z:close()
 
-i = io.open('txt', 'rb') org = i:read('*a') i:close()
+of = gzip.open('txt.gz', "wb9")
+i = assert(io.open('txt', 'w'))
+for _,str in ipairs{'a', 'b', 'c'} do
+  local s = (str:rep(10)) ,'\n'
+  i:write(s)
+  of:write(s)
+end
+i:close()
+of:close()
+
+i = assert(io.open('txt', 'rb')) org = i:read('*a') i:close()
 i = io.open('txt.gz', 'rb')
 dup = ''
 
@@ -76,3 +88,6 @@ z:flush('finish')
 z:close()
 o:close()
 i:close()
+
+os.remove("txt")
+os.remove("txt.gz")

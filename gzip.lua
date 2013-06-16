@@ -13,9 +13,9 @@ local zlib = require 'zlib'
 
 local error, assert, setmetatable, tostring = error, assert, setmetatable, tostring
 
-module('gzip')
+local _M = {}
 
-function open(filename, mode)
+function _M.open(filename, mode)
 	mode = mode or 'r'
 	local r = mode:find('r', 1, true) and true
 	local w = mode:find('w', 1, true) and true
@@ -69,8 +69,8 @@ function open(filename, mode)
 	return setmetatable({}, mt)
 end
 
-function lines(filename)
-	local gz = open(filename, 'r')
+function _M.lines(filename)
+	local gz = _M.open(filename, 'r')
 	return function()
 		local line = gz and gz:read()
 		if line == nil then
@@ -79,3 +79,5 @@ function lines(filename)
 		return line
 	end
 end
+
+return _M
