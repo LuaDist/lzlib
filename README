@@ -63,6 +63,7 @@ zlib.deflate(
 	windowBits, [15]
 	memLevel, [8]
 	strategy, [Z_DEFAULT_STRATEGY]
+	dictionary, [""]
 )
 	Return a deflate stream.
 
@@ -80,6 +81,7 @@ zlib.deflate(
 zlib.inflate(
 	source: string | function | { read: function, close: function },
 	windowBits: number, [15]
+	dictionary, [""]
 )
 	Return an inflate stream.
 
@@ -91,7 +93,7 @@ deflate and inflate streams can be used almost like a normal file:
 
 	stream:read([option [, ...]])
 		Read from the stream, each parameter corresponds to
-                a return value.
+			a return value.
 		
 		With no arguments, it reads a line.
 		Parameters are interpreted as follows:
@@ -101,7 +103,7 @@ deflate and inflate streams can be used almost like a normal file:
 
 	stream:lines(...)
 		Returns an iterator that returns a new line each time
-                it is called.
+			it is called.
 
 	stream:flush(['sync' | 'full' | 'finish'])
 		Flush output for deflate streams.
