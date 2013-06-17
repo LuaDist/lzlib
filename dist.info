@@ -1,7 +1,7 @@
 --- This file is part of LuaDist project
 
 name = "lzlib"
-version = "0.4-work3"
+version = "0.4.1"
 
 desc = "Lua bindings to the ZLib compression library"
 author = "Tiago Dionizio"
