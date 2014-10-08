@@ -855,7 +855,7 @@ static int lzlib_decompress(lua_State *L)
             break;
 
         if (ret == Z_BUF_ERROR && 0 < zs.avail_out) {
-            lua.pushliteral(L, "input buffer error, input data may be corrupted");
+            lua_pushliteral(L, "input buffer error, input data may be corrupted");
             lua_error(L);
         }
 
