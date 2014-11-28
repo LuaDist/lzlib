@@ -1,4 +1,4 @@
-# Copyright (C) 2007-2012 LuaDist.
+# Copyright (C) 2007-2013 LuaDist.
 # Created by Peter Drahoš
 # Redistribution and use of this file is allowed according to the terms of the MIT license.
 # For details see the COPYRIGHT file distributed with LuaDist.
@@ -15,9 +15,5 @@ find_library ( Z_LIBRARY NAMES zlib z )
 install_lua_module ( zlib lzlib.c zlib.def LINK ${Z_LIBRARY} )
 install_lua_module ( gzip gzip.lua )
 
-add_lua_test ( test_gzip.lua )
-add_lua_test ( test_zlib2.lua )
-add_lua_test ( test_zlib3.lua )
-
 install_data ( README README.lgzip )
-install_test ( test_zlib2.lua test_gzip.lua )
+install_test ( test_gzip.lua test_zlib_dict.lua test_zlib2.lua test_zlib3.lua )
