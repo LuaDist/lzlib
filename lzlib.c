@@ -714,6 +714,14 @@ static int lzlib_version(lua_State *L)
     return 1;
 }
 
+#if UINT_MAX <= 0xFFFFFFFF
+#  define check_u32(L, idx) 0xFFFFFFFF & (uLong)luaL_checknumber(L, idx)
+#  define push_u32(L, v)    lua_pushnumber(L, 0xFFFFFFFF & (uLong)v)
+#else
+#  define check_u32(L, idx) 0xFFFFFFFF & (uLong)luaL_checkinteger(L, idx)
+#  define push_u32(L, v)    lua_pushinteger(L, 0xFFFFFFFF & (uLong)v)
+#endif
+
 /* ====================================================================== */
 static int lzlib_adler32(lua_State *L)
 {
@@ -726,10 +734,11 @@ static int lzlib_adler32(lua_State *L)
     {
         /* update adler32 checksum */
         size_t len;
-        int adler = luaL_checkint(L, 1);
+        uLong adler = check_u32(L, 1);
+
         const unsigned char* buf = (unsigned char*)luaL_checklstring(L, 2, &len);
 
-        lua_pushnumber(L, adler32(adler, buf, len));
+        push_u32(L, adler32(adler, buf, len));
     }
     return 1;
 }
@@ -746,10 +755,11 @@ static int lzlib_crc32(lua_State *L)
     {
         /* update crc32 checksum */
         size_t len;
-        int crc = luaL_checkint(L, 1);
+        uLong crc = check_u32(L, 1);
+
         const unsigned char* buf = (unsigned char*)luaL_checklstring(L, 2, &len);
 
-        lua_pushnumber(L, crc32(crc, buf, len));
+        push_u32(L, crc32(crc, buf, len));
     }
     return 1;
 }

@@ -58,5 +58,6 @@ target('test', install, function()
   run(J(test_dir,'test_zlib2.lua'), test_dir)
   run(J(test_dir,'test_prologue.lua'), test_dir)
   run(J(test_dir,'test_gzip.lua'), test_dir)
+  run(J(test_dir,'test_crc32.lua'), test_dir)
 end)
 
