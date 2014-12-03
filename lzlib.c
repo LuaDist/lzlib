@@ -714,13 +714,30 @@ static int lzlib_version(lua_State *L)
     return 1;
 }
 
-#if UINT_MAX <= 0xFFFFFFFF
-#  define check_u32(L, idx) 0xFFFFFFFF & (uLong)luaL_checknumber(L, idx)
-#  define push_u32(L, v)    lua_pushnumber(L, 0xFFFFFFFF & (uLong)v)
-#else
-#  define check_u32(L, idx) 0xFFFFFFFF & (uLong)luaL_checkinteger(L, idx)
-#  define push_u32(L, v)    lua_pushinteger(L, 0xFFFFFFFF & (uLong)v)
-#endif
+#define STATIC_ASSERT(A) {(int(*)[(A)?1:0])0;}
+
+uLong check_u32(lua_State *L, int idx)
+{
+    STATIC_ASSERT(sizeof(uLong)>=4);
+    if(sizeof(lua_Integer) > 4)
+    {
+        return 0xFFFFFFFF & luaL_checkinteger(L, idx);
+    }
+    return 0xFFFFFFFF & (uLong)luaL_checknumber(L, idx);
+}
+
+void push_u32(lua_State *L, uLong val)
+{
+    STATIC_ASSERT(sizeof(uLong)>=4);
+    if(sizeof(lua_Integer) > 4)
+    {
+        lua_pushinteger(L, 0xFFFFFFFF & val);
+    }
+    else
+    {
+        lua_pushnumber(L, 0xFFFFFFFF & (uLong)val);
+    }
+}
 
 /* ====================================================================== */
 static int lzlib_adler32(lua_State *L)
@@ -728,7 +745,7 @@ static int lzlib_adler32(lua_State *L)
     if (lua_gettop(L) == 0)
     {
         /* adler32 initial value */
-        lua_pushnumber(L, adler32(0L, Z_NULL, 0));
+        push_u32(L, adler32(0L, Z_NULL, 0));
     }
     else
     {
@@ -749,7 +766,7 @@ static int lzlib_crc32(lua_State *L)
     if (lua_gettop(L) == 0)
     {
         /* crc32 initial value */
-        lua_pushnumber(L, crc32(0L, Z_NULL, 0));
+        push_u32(L, crc32(0L, Z_NULL, 0));
     }
     else
     {
