@@ -64,6 +64,18 @@
     #define LZ_BUFFER_SIZE 8192
 #endif
 
+#if LUA_VERSION_NUM >= 503 /* Lua 5.3 */
+
+#ifndef luaL_checkint
+#define luaL_checkint luaL_checkinteger
+#endif
+
+#ifndef luaL_optint
+#define luaL_optint luaL_optinteger
+#endif
+
+#endif
+
 typedef struct {
     /* zlib structures */
     z_stream zstream;
@@ -702,22 +714,48 @@ static int lzlib_version(lua_State *L)
     return 1;
 }
 
+#define STATIC_ASSERT(A) {(int(*)[(A)?1:0])0;}
+
+uLong check_u32(lua_State *L, int idx)
+{
+    STATIC_ASSERT(sizeof(uLong)>=4);
+    if(sizeof(lua_Integer) > 4)
+    {
+        return 0xFFFFFFFF & luaL_checkinteger(L, idx);
+    }
+    return 0xFFFFFFFF & (uLong)luaL_checknumber(L, idx);
+}
+
+void push_u32(lua_State *L, uLong val)
+{
+    STATIC_ASSERT(sizeof(uLong)>=4);
+    if(sizeof(lua_Integer) > 4)
+    {
+        lua_pushinteger(L, 0xFFFFFFFF & val);
+    }
+    else
+    {
+        lua_pushnumber(L, 0xFFFFFFFF & (uLong)val);
+    }
+}
+
 /* ====================================================================== */
 static int lzlib_adler32(lua_State *L)
 {
     if (lua_gettop(L) == 0)
     {
         /* adler32 initial value */
-        lua_pushnumber(L, adler32(0L, Z_NULL, 0));
+        push_u32(L, adler32(0L, Z_NULL, 0));
     }
     else
     {
         /* update adler32 checksum */
         size_t len;
-        int adler = luaL_checkint(L, 1);
+        uLong adler = check_u32(L, 1);
+
         const unsigned char* buf = (unsigned char*)luaL_checklstring(L, 2, &len);
 
-        lua_pushnumber(L, adler32(adler, buf, len));
+        push_u32(L, adler32(adler, buf, len));
     }
     return 1;
 }
@@ -728,16 +766,17 @@ static int lzlib_crc32(lua_State *L)
     if (lua_gettop(L) == 0)
     {
         /* crc32 initial value */
-        lua_pushnumber(L, crc32(0L, Z_NULL, 0));
+        push_u32(L, crc32(0L, Z_NULL, 0));
     }
     else
     {
         /* update crc32 checksum */
         size_t len;
-        int crc = luaL_checkint(L, 1);
+        uLong crc = check_u32(L, 1);
+
         const unsigned char* buf = (unsigned char*)luaL_checklstring(L, 2, &len);
 
-        lua_pushnumber(L, crc32(crc, buf, len));
+        push_u32(L, crc32(crc, buf, len));
     }
     return 1;
 }
