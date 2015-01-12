@@ -714,7 +714,7 @@ static int lzlib_adler32(lua_State *L)
     {
         /* update adler32 checksum */
         size_t len;
-        int adler = luaL_checkint(L, 1);
+        int adler = (int) luaL_checkinteger(L, 1);
         const unsigned char* buf = (unsigned char*)luaL_checklstring(L, 2, &len);
 
         lua_pushnumber(L, adler32(adler, buf, len));
@@ -734,7 +734,7 @@ static int lzlib_crc32(lua_State *L)
     {
         /* update crc32 checksum */
         size_t len;
-        int crc = luaL_checkint(L, 1);
+        int crc = (int) luaL_checkinteger(L, 1);
         const unsigned char* buf = (unsigned char*)luaL_checklstring(L, 2, &len);
 
         lua_pushnumber(L, crc32(crc, buf, len));
