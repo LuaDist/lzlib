@@ -242,11 +242,11 @@ static int lzlib_deflate(lua_State *L) {
         luaL_argerror(L, 1, "output parameter must be a function, table or userdata value");
     }
 
-    level = luaL_optint(L, 2, Z_DEFAULT_COMPRESSION);
-    method = luaL_optint(L, 3, Z_DEFLATED);
-    windowBits = luaL_optint(L, 4, 15);
-    memLevel = luaL_optint(L, 5, 8);
-    strategy = luaL_optint(L, 6, Z_DEFAULT_STRATEGY);
+    level = (int) luaL_optinteger(L, 2, Z_DEFAULT_COMPRESSION);
+    method = (int) luaL_optinteger(L, 3, Z_DEFLATED);
+    windowBits = (int) luaL_optinteger(L, 4, 15);
+    memLevel = (int) luaL_optinteger(L, 5, 8);
+    strategy = (int) luaL_optinteger(L, 6, Z_DEFAULT_STRATEGY);
     dictionary = luaL_optlstring(L, 7, NULL, &dictionary_len);
 
     s = lzstream_new(L, 1);
@@ -298,7 +298,7 @@ static int lzlib_inflate(lua_State *L)
         luaL_argerror(L, 1, "input parameter must be a string, function, table or userdata value");
     }
 
-    windowBits = luaL_optint(L, 2, 15);
+    windowBits = (int) luaL_optinteger(L, 2, 15);
     dictionary = luaL_optlstring(L, 3, NULL, &dictionary_len);
 
     s = lzstream_new(L, 1);
@@ -714,7 +714,7 @@ static int lzlib_adler32(lua_State *L)
     {
         /* update adler32 checksum */
         size_t len;
-        int adler = luaL_checkint(L, 1);
+        int adler = (int) luaL_checkinteger(L, 1);
         const unsigned char* buf = (unsigned char*)luaL_checklstring(L, 2, &len);
 
         lua_pushnumber(L, adler32(adler, buf, len));
@@ -734,7 +734,7 @@ static int lzlib_crc32(lua_State *L)
     {
         /* update crc32 checksum */
         size_t len;
-        int crc = luaL_checkint(L, 1);
+        int crc = (int) luaL_checkinteger(L, 1);
         const unsigned char* buf = (unsigned char*)luaL_checklstring(L, 2, &len);
 
         lua_pushnumber(L, crc32(crc, buf, len));
@@ -748,11 +748,11 @@ static int lzlib_crc32(lua_State *L)
 static int lzlib_compress(lua_State *L) {
     size_t avail_in;
     const char *next_in = luaL_checklstring(L, 1, &avail_in);
-    int level = luaL_optint(L, 2, Z_DEFAULT_COMPRESSION);
-    int method = luaL_optint(L, 3, Z_DEFLATED);
-    int windowBits = luaL_optint(L, 4, 15);
-    int memLevel = luaL_optint(L, 5, 8);
-    int strategy = luaL_optint(L, 6, Z_DEFAULT_STRATEGY);
+    int level = (int) luaL_optinteger(L, 2, Z_DEFAULT_COMPRESSION);
+    int method = (int) luaL_optinteger(L, 3, Z_DEFLATED);
+    int windowBits = (int) luaL_optinteger(L, 4, 15);
+    int memLevel = (int) luaL_optinteger(L, 5, 8);
+    int strategy = (int) luaL_optinteger(L, 6, Z_DEFAULT_STRATEGY);
 
     int ret;
     luaL_Buffer b;
@@ -814,7 +814,7 @@ static int lzlib_decompress(lua_State *L)
 {
     size_t avail_in;
     const char *next_in = luaL_checklstring(L, 1, &avail_in);
-    int windowBits = luaL_optint(L, 2, 15);
+    int windowBits = (int) luaL_optinteger(L, 2, 15);
 
     int ret;
     luaL_Buffer b;
