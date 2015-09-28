@@ -9,7 +9,7 @@ cmake_minimum_required ( VERSION 2.8 )
 include ( cmake/dist.cmake )
 include ( lua )
 
-find_library ( Z_LIBRARY NAMES zlib z )
+find_library ( Z_LIBRARY NAMES zlib zlibd z )
 # Find zlib
 
 install_lua_module ( zlib lzlib.c zlib.def LINK ${Z_LIBRARY} )
