@@ -34,7 +34,7 @@
 # Always search for non-versioned lua first (recommended)
 SET(_POSSIBLE_LUA_INCLUDE include include/lua)
 SET(_POSSIBLE_LUA_EXECUTABLE lua)
-SET(_POSSIBLE_LUA_LIBRARY lua)
+SET(_POSSIBLE_LUA_LIBRARY lua luajit)
 
 # Determine possible naming suffixes (there is no standard for this)
 IF(Lua_FIND_VERSION_MAJOR AND Lua_FIND_VERSION_MINOR)
@@ -43,17 +43,25 @@ ELSE(Lua_FIND_VERSION_MAJOR AND Lua_FIND_VERSION_MINOR)
   SET(_POSSIBLE_SUFFIXES "52" "5.2" "-5.2" "51" "5.1" "-5.1")
 ENDIF(Lua_FIND_VERSION_MAJOR AND Lua_FIND_VERSION_MINOR)
 
+MESSAGE(STATUS "Possible suffixes: ${_POSSIBLE_SUFFIXES}")
+
 # Set up possible search names and locations
 FOREACH(_SUFFIX ${_POSSIBLE_SUFFIXES})
   LIST(APPEND _POSSIBLE_LUA_INCLUDE "include/lua${_SUFFIX}")
   LIST(APPEND _POSSIBLE_LUA_EXECUTABLE "lua${_SUFFIX}")
   LIST(APPEND _POSSIBLE_LUA_LIBRARY "lua${_SUFFIX}")
+  LIST(APPEND _POSSIBLE_LUA_LIBRARY "luajit${_SUFFIX}")
 ENDFOREACH(_SUFFIX)
+
+MESSAGE (STATUS "Possible LUA library names: ${_POSSIBLE_LUA_LIBRARY}")
+MESSAGE (STATUS "Possible LUA include dirs:  ${_POSSIBLE_LUA_INCLUDE}")
+MESSAGE (STATUS "Possible LUA executable:    ${_POSSIBLE_LUA_EXECUTABLE}")
 
 # Find the lua executable
 FIND_PROGRAM(LUA_EXECUTABLE
   NAMES ${_POSSIBLE_LUA_EXECUTABLE}
 )
+MESSAGE (STATUS "Found LUA executable: ${LUA_EXECUTABLE}")
 
 # Find the lua header
 FIND_PATH(LUA_INCLUDE_DIR lua.h
@@ -70,6 +78,7 @@ FIND_PATH(LUA_INCLUDE_DIR lua.h
   /opt/csw # Blastwave
   /opt
 )
+MESSAGE (STATUS "Found LUA header: ${LUA_INCLUDE_DIR}")
 
 # Find the lua library
 FIND_LIBRARY(LUA_LIBRARY 
@@ -87,6 +96,7 @@ FIND_LIBRARY(LUA_LIBRARY
   /opt/csw
   /opt
 )
+MESSAGE (STATUS "Found LUA lib: ${LUA_LIBRARY}")
 
 IF(LUA_LIBRARY)
   # include the math library for Unix
